@@ -1,0 +1,5 @@
+#!/bin/zsh
+# revoice <folder> [--out DIR] [--jobs N] [--force] [--only NAME...]
+HERE=${0:A:h}
+PY=$(/usr/bin/python3 -c "import json;print(json.load(open('$HERE/config.json'))['python'])")
+exec "$PY" "$HERE/revoice.py" "$@"

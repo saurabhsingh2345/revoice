@@ -1,0 +1,13 @@
+{
+  "python": "/Users/enfecsolutions/Desktop/enfec_subs/courseSmith/tools/align/.venv/bin/python",
+  "align_script": "/Users/enfecsolutions/Desktop/enfec_subs/courseSmith/tools/align/align.py",
+  "kokoro_url": "http://localhost:8880",
+  "kokoro_image": "ghcr.io/remsky/kokoro-fastapi-cpu:latest",
+  "kokoro_container": "coursesmith-kokoro",
+  "voice": "af_heart",
+  "speed": 0.9,
+  "claude_bin": "claude",
+  "claude_model": null,
+  "never_say": ["enfec", "sweta", "saurabh", "singh", "@"],
+  "target_lufs": -16.0
+}

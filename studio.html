@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revoice Studio</title>
+<style>
+:root{--bg:#f6f5f2;--card:#fff;--ink:#1c1b19;--mute:#6b6862;--line:#e3e0d9;--acc:#2b5cff;--ok:#1a8a4a;--bad:#c4311f;--log:#14130f;--logink:#d9d6cc}
+@media (prefers-color-scheme:dark){:root{--bg:#121110;--card:#1b1a18;--ink:#eeebe4;--mute:#9a968c;--line:#2e2c28;--acc:#7b9bff;--ok:#4cc27d;--bad:#ff7a66;--log:#0b0a09}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,system-ui,sans-serif}
+main{max-width:920px;margin:0 auto;padding:28px 16px 60px}
+h1{font-size:22px;margin:0 0 2px} .sub{color:var(--mute);margin:0 0 22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
+.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:0 0 12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=text],textarea{flex:1;min-width:200px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace}
+button{padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;cursor:pointer}
+button.primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+button:disabled{opacity:.5;cursor:default}
+label.step{display:flex;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;flex:1;min-width:240px;cursor:pointer}
+label.step b{display:block} label.step span{color:var(--mute);font-size:13px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{font-size:12.5px;padding:2px 9px;border-radius:99px;background:var(--bg);border:1px solid var(--line);color:var(--mute)}
+pre#log{background:var(--log);color:var(--logink);padding:12px;border-radius:8px;height:300px;overflow:auto;font:12px/1.45 ui-monospace,monospace;margin:0;white-space:pre-wrap}
+#status{font-weight:600} .running{color:var(--acc)} .done{color:var(--ok)} .problems,.stopped{color:var(--bad)}
+.out{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.out div{border:1px solid var(--line);border-radius:10px;padding:8px;font-size:13px}
+.out video{width:100%;border-radius:6px;background:#000;display:block;margin-bottom:6px}
+a{color:var(--acc);cursor:pointer} details summary{cursor:pointer;color:var(--mute)}
+.hint{color:var(--mute);font-size:13px;margin:8px 0 0}
+</style>
+</head>
+<body>
+<main>
+  <h1>Revoice Studio</h1>
+  <p class="sub">Screen recordings in, finished video out. Runs on this Mac: no API keys, no usage fees.</p>
+
+  <div class="card">
+    <h2>1 · Project folder</h2>
+    <div class="row">
+      <input type="text" id="folder" placeholder="/Users/you/Downloads/5.2">
+      <button id="pick">Choose…</button>
+      <button id="rescan">Refresh</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <details style="margin-top:12px"><summary>Series brief (optional): how the parts connect</summary>
+      <textarea id="series" placeholder="Who the narrator is, what the series teaches, how each part picks up the last…"></textarea>
+      <div class="row" style="margin-top:8px"><button id="saveSeries">Save series.md</button><span id="seriesMsg" class="hint"></span></div>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>2 · Recording script</h2>
+    <textarea id="script" style="min-height:200px" placeholder="scene: Ep 1 part 1 scene 1&#10;open: Visual Studio Code&#10;wait: 3&#10;click: 400 300&#10;type: print(&quot;hello&quot;)&#10;key: cmd+s"></textarea>
+    <div class="row" style="margin-top:8px"><button id="saveScript">Save script</button><button id="checkScript">Check it (records nothing)</button><span id="scriptMsg" class="hint"></span></div>
+    <details style="margin-top:8px"><summary>Script cheat sheet</summary><pre class="hint" style="white-space:pre-wrap">scene: name        new clip (name it "Ep 1 part 1 scene 1")
+open: App / URL / ~/path
+wait: 2.5          seconds of stillness
+move: x y   click: x y   dclick: x y     (points, 1728x1117 screen)
+type: text         human pace      paste: text
+key: return | cmd+s | cmd+shift+p | ctrl+`
+scroll: -300       pace: 15 (typing chars/second)</pre></details>
+  </div>
+
+  <div class="card">
+    <h2>3 · What to do</h2>
+    <div class="row">
+      <label class="step"><input type="checkbox" id="s_record"><div><b>Record</b><span>Runs the script above and films the screen. Hands off the Mac while it runs.</span></div></label>
+      <label class="step"><input type="checkbox" id="s_voice" checked><div><b>Voice</b><span>Watches each clip, writes the narration, speaks it with Kokoro, checks it was heard on cue.</span></div></label>
+      <label class="step"><input type="checkbox" id="s_edit" checked><div><b>Edit &amp; stitch</b><span>Fast-forwards the dead waits, joins scenes into one video per part.</span></div></label>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <input type="text" id="only" placeholder='Only these (optional), e.g. part 3, part 4'>
+      <label><input type="checkbox" id="force"> redo from scratch</label>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="primary" id="run">Run</button>
+      <button id="stop" disabled>Stop</button>
+      <span id="status">idle</span>
+    </div>
+    <p class="hint">The voice step needs Docker Desktop and the <code>claude</code> CLI signed in. Studio starts Kokoro for you.</p>
+  </div>
+
+  <div class="card">
+    <h2>4 · Progress</h2>
+    <pre id="log">Nothing running.</pre>
+  </div>
+
+  <div class="card">
+    <h2>5 · Finished videos</h2>
+    <div id="outs" class="hint">Run a job and the results show up here.</div>
+  </div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const j=(u,o)=>fetch(u,o).then(r=>r.json());
+const post=(u,b)=>j(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+let since=0,timer=null,scanData=null;
+try{$('folder').value=localStorage.getItem('folder')||''}catch(e){}
+
+async function scan(){
+  const f=$('folder').value.trim(); if(!f)return;
+  try{localStorage.setItem('folder',f)}catch(e){}
+  const s=scanData=await j('/api/scan?folder='+encodeURIComponent(f));
+  $('chips').innerHTML=!s.exists?'<span class="chip">folder not found</span>':
+    `<span class="chip">${s.sources.length} source clips</span><span class="chip">${s.revoiced.length} voiced</span><span class="chip">${s.edited.length} finished</span>`+
+    (s.series?'<span class="chip">series.md ✓</span>':'');
+  if(s.exists){const sc=await j('/api/script?folder='+encodeURIComponent(f));$('script').value=sc.text;const r=await j('/api/series?folder='+encodeURIComponent(f));$('series').value=r.text}
+  const q=p=>`folder=${encodeURIComponent(s.folder)}&path=${encodeURIComponent(p)}`;
+  const card=(dir,n)=>`<div><video controls preload="none" src="/video?${q(dir+'/'+n)}"></video>${n}<br><a onclick="post('/api/reveal',{folder:'${s.folder.replace(/'/g,"\\'")}',path:'${(dir+'/'+n).replace(/'/g,"\\'")}'})">Show in Finder</a></div>`;
+  const list=s.edited.map(n=>card('edited',n)).join('')+s.revoiced.map(n=>card('revoiced',n)).join('');
+  $('outs').className=list?'out':'hint';
+  $('outs').innerHTML=list||'Run a job and the results show up here.';
+}
+async function poll(){
+  const s=await j('/api/state?since='+since);
+  if(s.lines.length){const l=$('log');if(since===0)l.textContent='';l.textContent+=s.lines.join('\n')+'\n';l.scrollTop=l.scrollHeight}
+  since=s.next;
+  $('status').textContent=s.status;$('status').className=s.status;
+  $('run').disabled=s.running;$('stop').disabled=!s.running;
+  if(!s.running){clearInterval(timer);timer=null;scan()}
+}
+$('pick').onclick=async()=>{const r=await j('/api/pick');if(r.folder){$('folder').value=r.folder;scan()}};
+$('rescan').onclick=scan;$('folder').onchange=scan;
+$('saveSeries').onclick=async()=>{const r=await post('/api/series',{folder:$('folder').value.trim(),text:$('series').value});$('seriesMsg').textContent=r.ok?'Saved.':r.error;scan()};
+$('run').onclick=async()=>{
+  const steps=['record','voice','edit'].filter(s=>$('s_'+s).checked);
+  const only=$('only').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const r=await post('/api/run',{folder:$('folder').value.trim(),steps,only,force:$('force').checked});
+  if(r.error){alert(r.error);return}
+  since=0;$('log').textContent='Starting…\n';
+  timer=timer||setInterval(poll,1000);poll();
+};
+$('saveScript').onclick=async()=>{const r=await post('/api/script',{folder:$('folder').value.trim(),text:$('script').value});$('scriptMsg').textContent=r.ok?'Saved.':r.error};
+$('checkScript').onclick=async()=>{await $('saveScript').onclick();const r=await post('/api/run',{folder:$('folder').value.trim(),steps:['record'],dry:true});if(r.error){alert(r.error);return}since=0;timer=timer||setInterval(poll,1000);poll()};
+$('stop').onclick=()=>post('/api/stop',{});
+scan();poll();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+studio/dist/
+node_modules/
+.DS_Store

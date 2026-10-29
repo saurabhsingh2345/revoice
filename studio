@@ -1,0 +1,5 @@
+#!/bin/zsh
+# studio — opens Revoice Studio in the browser. Double-click Studio.command or run `studio`.
+HERE=${0:A:h}
+PY=$(/usr/bin/python3 -c "import json;print(json.load(open('$HERE/config.json'))['python'])")
+exec "$PY" "$HERE/studio.py" "$@"
